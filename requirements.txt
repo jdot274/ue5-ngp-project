@@ -1,0 +1,19 @@
+# Python dependencies for NGP → USD/glTF → UE5 pipeline
+
+# Core mesh processing
+trimesh>=4.0.0
+numpy>=1.24.0
+
+# USD export support
+usd-core>=23.11
+
+# Optional: glTF utilities
+pygltflib>=1.16.0
+
+# Instant-NGP Python bindings (built separately)
+# See: https://github.com/NVlabs/instant-ngp#python-bindings
+# pyngp (requires local NGP build)
+
+# Development tools
+flake8>=6.0.0
+black>=23.0.0
