@@ -259,3 +259,256 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 For questions or collaborations: [@jdot274](https://github.com/jdot274)
+
+
+## AI-Assisted Development Features
+
+### Overview
+
+This project includes production-ready AI assistance and remote control capabilities through existing UE5 plugins, enabling external web interfaces and AI-powered development workflows.
+
+### Key Features
+
+#### 1. **UE5 Remote Control Integration**
+- **Remote Control API** - Control UE5 properties and functions remotely via REST API
+- **Remote Control Web Interface** - Built-in web UI with drag-and-drop interface builder
+- **Real-time synchronization** - Multi-client support with live property updates
+- **WebSocket events** - Stream real-time engine events to external applications
+
+#### 2. **Pixel Streaming**
+- **Viewport streaming** - Stream UE5 viewport over WebRTC to any browser
+- **Full input control** - Mouse, keyboard, and touch input from browsers
+- **Mobile support** - Works on iOS, Android, and desktop browsers
+- **Custom HTML5 UI** - Build custom player interfaces
+
+#### 3. **AI Server**
+Production-ready FastAPI server (`AIServer/`) with:
+- **Blueprint generation** - AI-powered Blueprint code generation
+- **Code assistance** - Generate C++ and Python code for UE5
+- **Natural language control** - Control UE5 through conversational AI
+- **UE5 Remote Control client** - Complete Python client library for UE5 integration
+
+### Architecture
+
+```
+┌─────────────────┐
+│  Web Browser    │  ← Pixel Streaming (Live Viewport)
+│  (External)     │  ← Remote Control Web UI (Controls)
+└────────┬────────┘
+         │
+         ├─ WebSocket (ws://localhost:80)
+         ├─ HTTP REST (http://localhost:7000)
+         │
+┌────────▼────────┐
+│   AI Server     │  ← FastAPI (Port 8000)
+│  (Python)       │  ← AI Assistance (Claude/GPT)
+└────────┬────────┘
+         │
+         ├─ Remote Control API
+         │
+┌────────▼────────┐
+│  Unreal Engine  │  ← Remote Control Presets
+│     (UE5)       │  ← Pixel Streaming Plugin
+│                 │  ← WebUI Widgets
+└─────────────────┘
+```
+
+### Getting Started with AI Features
+
+#### 1. Enable UE5 Plugins
+
+1. Open your UE5 project
+2. Go to **Edit → Plugins**
+3. Enable:
+   - Remote Control API
+   - Remote Control Web Interface  
+   - Pixel Streaming
+4. Restart Unreal Engine
+
+#### 2. Configure Remote Control
+
+**Project Settings → Plugins → Remote Control:**
+```
+- Enable Remote Control Web Server: ✓
+- Web Server Port: 7000
+- Enable Remote Control Web Interface: ✓
+```
+
+#### 3. Create Remote Control Presets
+
+1. **Window → Virtual Production → Remote Control**
+2. Create a new preset
+3. Drag properties/actors you want to control:
+   - Camera positions and FOV
+   - Light properties (color, intensity)
+   - Material parameters
+   - Blueprint functions
+
+#### 4. Start the AI Server
+
+```bash
+cd AIServer
+pip install -r requirements.txt
+python server.py
+```
+
+The AI server will start on `http://localhost:8000`
+
+#### 5. Access Interfaces
+
+- **Remote Control Web UI**: `http://localhost:7000/remote/control`
+- **AI Server API**: `http://localhost:8000/docs`
+- **Pixel Streaming**: `http://localhost/` (after starting signaling server)
+
+### Usage Examples
+
+#### Control UE5 from Python
+
+```python
+from AIServer.ue5_remote_control import create_client
+
+# Create client
+ue5 = create_client(host="localhost", port=7000)
+
+# Check connection
+if ue5.health_check():
+    print("Connected to UE5!")
+
+# List available presets
+presets = ue5.list_presets()
+print(f"Available presets: {presets}")
+
+# Set property
+ue5.set_property(
+    preset_name="MainPreset",
+    property_name="CameraActor.FOV",
+    value=90
+)
+
+# Call Blueprint function
+ue5.call_function(
+    preset_name="MainPreset",
+    function_name="SpawnActor",
+    parameters={"ActorClass": "Cube", "Location": {"X": 0, "Y": 0, "Z": 100}}
+)
+
+# Batch update properties
+ue5.batch_set_properties(
+    preset_name="MainPreset",
+    properties={
+        "Light.Intensity": 5000,
+        "Light.Color": {"R": 1.0, "G": 0.8, "B": 0.6},
+        "PostProcess.Exposure": 1.2
+    }
+)
+```
+
+#### Stream Real-time Events
+
+```python
+import asyncio
+from AIServer.ue5_remote_control import stream_ue5_events
+
+async def handle_event(event_data):
+    print(f"UE5 Event: {event_data}")
+    # Process event, trigger AI response, etc.
+
+# Stream events
+await stream_ue5_events(
+    host="localhost",
+    port=7000,
+    event_handler=handle_event
+)
+```
+
+#### AI-Powered Blueprint Generation
+
+```python
+import requests
+
+response = requests.post(
+    "http://localhost:8000/api/blueprint/generate",
+    json={
+        "description": "Create a rotating light that changes color over time",
+        "blueprint_type": "Actor",
+        "context": {"project": "UE5-NGP"}
+    }
+)
+
+blueprint = response.json()
+print(blueprint["blueprint"])
+```
+
+### Production Deployment
+
+#### Remote Control API
+- Copy `Engine/Plugins/VirtualProduction/RemoteControlWebInterface/WebApp/` to packaged game
+- Configure firewall rules for port 7000
+- Enable HTTPS for production
+
+#### Pixel Streaming
+- Set up dedicated signaling server
+- Configure TURN server for mobile/secure networks
+- Use hardware encoding (NVENC/QuickSync)
+- Target 30-60 FPS, 1920x1080 resolution
+
+#### AI Server
+- Deploy with production ASGI server (Gunicorn + Uvicorn)
+- Add authentication and rate limiting
+- Use environment variables for API keys
+- Set up logging and monitoring
+
+### Documentation
+
+Detailed guides available in `Docs/`:
+- **[UE5_PLUGIN_INTEGRATION.md](Docs/UE5_PLUGIN_INTEGRATION.md)** - Comprehensive plugin setup and usage guide
+- **[IMPLEMENTATION_PLAN.md](Docs/IMPLEMENTATION_PLAN.md)** - Architecture and implementation details
+
+### API Reference
+
+#### UE5 Remote Control Endpoints
+
+```
+GET  /remote/info                 - Server information
+GET  /remote/presets               - List all presets
+GET  /remote/preset/{name}         - Get preset details
+PUT  /remote/object/property       - Set property value
+PUT  /remote/object/call           - Call function
+GET  /remote/search/assets         - Search for assets
+GET  /remote/search/actors         - Search for actors
+WS   /remote/events                - WebSocket event stream
+```
+
+#### AI Server Endpoints
+
+```
+GET  /                             - Server status
+POST /api/blueprint/generate       - Generate Blueprint code
+POST /api/code/generate            - Generate C++/Python code
+POST /api/chat                     - AI chat assistance
+WS   /ws                           - WebSocket for real-time communication
+```
+
+### Troubleshooting
+
+**Remote Control API not accessible**
+- Check Project Settings → Remote Control → Enable Web Server
+- Verify port 7000 is not blocked by firewall
+- Ensure Remote Control API plugin is enabled
+
+**Pixel Streaming "WebRTC negotiated" but no video**
+- Check signaling server is running
+- Verify firewall allows WebRTC traffic
+- For mobile devices, set up TURN server
+
+**AI Server connection failed**
+- Ensure Python dependencies are installed: `pip install -r AIServer/requirements.txt`
+- Check AI Server is running on port 8000
+- Verify UE5 Remote Control server is accessible
+
+### Resources
+
+- [Remote Control API Documentation](https://dev.epicgames.com/documentation/en-us/unreal-engine/remote-control-api-for-unreal-engine)
+- [Remote Control Web Interface Guide](https://dev.epicgames.com/documentation/en-us/unreal-engine/remote-control-web-application-for-unreal-engine)
+- [Pixel Streaming Documentation](https://dev.epicgames.com/documentation/en-us/unreal-engine/pixel-streaming-in-unreal-engine)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
