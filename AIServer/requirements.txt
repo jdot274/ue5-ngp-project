@@ -1,0 +1,39 @@
+# AI Server Dependencies for UE5-NGP AI Assistant
+
+# Web Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.9
+
+# WebSocket Support
+python-socketio==5.11.0
+aiohttp==3.9.1
+
+# LLM APIs
+anthropic==0.17.0
+openai==1.12.0
+
+# WebRTC Support (for viewport streaming)
+aiortc==1.6.0
+av==11.0.0
+
+# Video Processing
+opencv-python==4.9.0.80
+Pillow==10.2.0
+numpy==1.26.3
+
+# Networking
+websockets==12.0
+requests==2.31.0
+
+# Configuration
+python-dotenv==1.0.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Logging & Monitoring
+loguru==0.7.2
+
+# Async Support
+asyncio==3.4.3
+aiofiles==23.2.1
